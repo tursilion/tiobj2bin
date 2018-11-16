@@ -10,6 +10,7 @@
 unsigned char memory[64*1024];
 char tifiles[128] = "\x7TIFILES\0\x20\x01\0\0\0\0\0";
 bool bRaw = false;
+bool bBlock = false;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -18,18 +19,23 @@ int _tmain(int argc, _TCHAR* argv[])
 	bool bEOF=false;
 	int nCount=0, nFiles=1;
 	char outbuf[256];
-	int lowestAdr = 0xffff;
-	int highestAdr = 0x0000;
+	unsigned int lowestAdr = 0xffff;
+	unsigned int highestAdr = 0x0000;
 
 	if (argc < 3) {
-		printf("tiobj2bin <object file> <binary file> -raw\n-Only Absolute data is handled.\n");
+		printf("tiobj2bin <object file> <binary file> -raw -block\n-Only Absolute data is handled.\n");
 		printf("-raw will skip the padding and TIFILES and PROGRAM headers, and just write the data\n");
+        printf("-block will assume that the input object file has no line endings (xas99 does this)\n");
 		return 0;
 	}
 
-	if (argc >= 4) {
-		if (0 == strcmp(argv[3], "-raw")) {
+    for (int idx = 3; idx<argc; ++idx) {
+		if (0 == strcmp(argv[idx], "-raw")) {
 			printf("File will be written raw\n");
+			bRaw = true;
+		}
+		if (0 == strcmp(argv[idx], "-block")) {
+			printf("Input File will be read as block\n");
 			bRaw = true;
 		}
 	}
@@ -43,7 +49,11 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	while ((!feof(f1)) && (!bEOF)) {
 		char buf[128];
-		if (NULL == fgets(buf, 128, f1)) break;
+        if (bBlock) {
+            if (0 == fread(buf, 1, 80, f1)) break;
+        } else {
+    		if (NULL == fgets(buf, 128, f1)) break;
+        }
 		int n=0;
 		while (buf[n]) {
 			int x;
