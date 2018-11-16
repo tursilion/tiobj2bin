@@ -36,7 +36,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		if (0 == strcmp(argv[idx], "-block")) {
 			printf("Input File will be read as block\n");
-			bRaw = true;
+			bBlock = true;
 		}
 	}
 
@@ -51,6 +51,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		char buf[128];
         if (bBlock) {
             if (0 == fread(buf, 1, 80, f1)) break;
+            buf[80]='\0';
         } else {
     		if (NULL == fgets(buf, 128, f1)) break;
         }
